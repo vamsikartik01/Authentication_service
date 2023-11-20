@@ -1,3 +1,13 @@
 {
-    "service":"auth"
+    "service":"auth",
+    "jwt": {
+        "secret" : "<secret_key>"
+    },
+    "mysql": {
+        "host":"<host>",
+        "port":"<port>",
+        "username":"<username>",
+        "password":"<password>",
+        "database":"<database_name>"
+    }
 }

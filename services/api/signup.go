@@ -2,26 +2,13 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/vamsikartik01/Authentication_service/api/models"
 	"github.com/vamsikartik01/Authentication_service/api/services/helpers"
 	"github.com/vamsikartik01/Authentication_service/api/services/mysql"
 )
-
-func LoginUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if r.Method != "POST" {
-		w.Write([]byte("Failed"))
-		return
-	}
-
-	w.Write([]byte("Success"))
-	return
-}
-
-func Verify() {}
 
 func SignupUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -37,7 +24,6 @@ func SignupUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Bad Request"))
 		return
 	}
-	fmt.Println(user)
 
 	salt, err := helpers.GenerateSalt(user.Password)
 	if err != nil {
@@ -69,6 +55,8 @@ func SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer r.Body.Close()
+
+	log.Println("Successfully Created User - ", user.Username)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User Created Successfully!"))

@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
-	"fmt"
+	"log"
 )
 
 func GenerateSalt(password string) (string, error) {
@@ -12,16 +12,14 @@ func GenerateSalt(password string) (string, error) {
 	salt := make([]byte, saltSize)
 	_, err := rand.Read(salt[:])
 	if err != nil {
-		fmt.Println("Error Generating Salt")
+		log.Println("Error Generating Salt")
 		return string(salt), err
 	}
-	fmt.Println("salt", salt)
 	return base64.URLEncoding.EncodeToString(salt), nil
 }
 
 func GeneratePasswordHash(password string, salt string) (string, error) {
 	passwordSalt := password + salt
-	fmt.Println("pass", passwordSalt)
 	passwordBytes := []byte(passwordSalt)
 	hasher := sha512.New()
 	hasher.Write(passwordBytes)
@@ -46,8 +44,6 @@ func VerifySaltAndPassword(password string, salt string, hash string) (bool, err
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("hash", hash)
-	fmt.Println("password hash", passwordHashed)
 	if passwordHashed == hash {
 		return true, nil
 	}

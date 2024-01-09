@@ -1,13 +1,15 @@
 {
     "service":"auth",
     "jwt": {
-        "secret" : "<secret_key>"
+        "secret" : "",
+        "auth_session_time": 48,
+        "refresh_session_time": 72
     },
     "mysql": {
-        "host":"<host>",
-        "port":"<port>",
-        "username":"<username>",
-        "password":"<password>",
-        "database":"<database_name>"
+        "host":"",
+        "port":"",
+        "username":"",
+        "password":"",
+        "database":""
     }
 }

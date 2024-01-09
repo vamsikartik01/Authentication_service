@@ -7,7 +7,9 @@ type Config struct {
 }
 
 type Jwt struct {
-	Secret string `json:"secret"`
+	Secret             string `json:"secret"`
+	AuthSessionTime    int    `json:"auth_session_time"`
+	RefreshSessionTime int    `json:"refresh_session_time"`
 }
 
 type Mysql struct {

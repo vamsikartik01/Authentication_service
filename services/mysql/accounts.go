@@ -31,11 +31,11 @@ func InsertSalt(salt string) (int, error) {
 	return int(rowId), nil
 }
 
-func FetchUser(user *models.SigninForm) (*models.Account, error) {
+func FetchUser(userEmail string) (*models.Account, error) {
 	query := "SELECT * FROM Accounts WHERE email = ?"
 
 	account := models.Account{}
-	err := db.QueryRow(query, user.Email).Scan(&account.Id, &account.Username, &account.Email, &account.PasswordHash, &account.SaltId, &account.CreatedAt, &account.PasswordChangedAt)
+	err := db.QueryRow(query, userEmail).Scan(&account.Id, &account.Username, &account.Email, &account.PasswordHash, &account.SaltId, &account.CreatedAt, &account.PasswordChangedAt)
 	if err != nil {
 		log.Println("Error Fetching User Account", err)
 		return nil, err

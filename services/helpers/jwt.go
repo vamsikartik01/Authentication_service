@@ -9,12 +9,12 @@ import (
 	"github.com/vamsikartik01/Authentication_service/api/models"
 )
 
-func GenerateJwt(accountId int, username string) (string, error) {
+func GenerateJwt(accountId int, username string, sessionTime int) (string, error) {
 	claims := models.JwtClaims{
 		UserId:   accountId,
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(sessionTime)).Unix(),
 		},
 	}
 

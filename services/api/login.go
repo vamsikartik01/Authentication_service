@@ -27,35 +27,46 @@ func SigninUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := mysql.FetchUser(user)
+	account, err := mysql.FetchUser(user.Email)
 	if err != nil {
-		w.WriteHeader(http.StatusNoContent)
-		w.Write([]byte("User Not Found!"))
+		log.Println("User not found for the user -", user.Email)
+		resp := models.Response{Status: "Failed", Message: "User not Found!"}
+		respJson, _ := json.Marshal(resp)
+		w.WriteHeader(http.StatusAccepted)
+		w.Write(respJson)
 		return
 	}
 
 	salt, err := mysql.FetchSalt(account.SaltId)
 	if err != nil {
-		w.WriteHeader(http.StatusNoContent)
-		w.Write([]byte("Salt Not Found!"))
+		log.Println("Salt not found for the user -", user.Email)
+		resp := models.Response{Status: "Failed", Message: "Unable to Verify"}
+		respJson, _ := json.Marshal(resp)
+		w.WriteHeader(http.StatusAccepted)
+		w.Write(respJson)
 		return
 	}
 
 	status, err := helpers.VerifySaltAndPassword(user.Password, salt.Salt, account.PasswordHash)
 	if err != nil {
+		log.Println("Unable to verify password for the user -", user.Email)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Internal Server Error!"))
 		return
 	}
 
 	if !status {
+		log.Println("Verification unsuccessful! for the user -", user.Email)
+		resp := models.Response{Status: "Success", Message: "Unauthorized! Please use correct password"}
+		respJson, _ := json.Marshal(resp)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Unauthorized! Please use correct password"))
+		w.Write(respJson)
 		return
 	}
 
-	jwtToken, err := helpers.GenerateJwt(account.Id, account.Username)
+	jwtToken, err := helpers.GenerateJwt(account.Id, account.Username, helpers.Config.Jwt.AuthSessionTime)
 	if err != nil {
+		log.Println("Error generating Auth Token")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Internal Server Error!"))
 		return
@@ -64,14 +75,38 @@ func SigninUser(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
 		Name:    "auth",
 		Value:   jwtToken,
-		Expires: time.Now().Add(time.Hour * 2),
+		Path:    "/",
+		Expires: time.Now().Add(time.Hour * time.Duration(helpers.Config.Jwt.AuthSessionTime)),
+	}
+
+	refreshToken, err := helpers.GenerateJwt(account.Id, account.Username, helpers.Config.Jwt.RefreshSessionTime)
+	if err != nil {
+		log.Println("Error generating Refresh Token")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error!"))
+		return
+	}
+
+	refreshCookie := http.Cookie{
+		Name:    "refresh",
+		Value:   refreshToken,
+		Path:    "/",
+		Expires: time.Now().Add(time.Hour * time.Duration(helpers.Config.Jwt.RefreshSessionTime)),
 	}
 
 	log.Println("Successfully LoggedIn User - ", account.Username)
 
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &refreshCookie)
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Login Successfull!"))
+	resp := models.Response{Status: "Success", Message: ""}
+	respJson, err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error converting response into json"))
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write(respJson)
 	return
 }
